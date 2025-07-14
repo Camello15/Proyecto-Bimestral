@@ -8,4 +8,6 @@ Este proyecto realiza un análisis exploratorio y visualización de los datos so
 
 Los datos utilizados en este proyecto fueron obtenidos del sitio oficial del INEC (Instituto Nacional de Estadística y Censos del Ecuador):
 
-https://www.ecuadorencifras.gob.ec/nacidos-vivos-y-defunciones-fetales/
+[Fuente de Registros Estadísticos de Nacidos Vivos y Defunciones Fetales](https://www.ecuadorencifras.gob.ec/nacidos-vivos-y-defunciones-fetales/)
+
+[Diccionario de datos - Descargar](https://github.com/Camello15/Proyecto-Bimestral/raw/refs/heads/main/Files/inec_nacidosvivos_dd_2023.ods)
