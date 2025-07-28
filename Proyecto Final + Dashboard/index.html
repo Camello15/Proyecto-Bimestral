@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Datos de Nacimientos - Análisis 2023</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ========================================================
+        Estilos CSS - Inspirado en Our World in Data (Modificado)
+        ========================================================
+        */
+
+        /* Colores Base (inspirados en Our World in Data) */
+        :root {
+            --owid-bg-light: #F9F9F9; /* Fondo muy claro (no usado directamente en cards ahora) */
+            --owid-text-dark: #0A0A0A; /* Texto oscuro principal */
+            --owid-text-medium: #6B6B6B; /* Texto gris medio */
+            --owid-accent-blue: #2760EF; /* Azul vibrante para acentos y enlaces */
+            --owid-card-bg: #fefefe; /* Fondo de tarjeta ligeramente coloreado (casi blanco) */
+            --owid-border-light: #E4E4E4; /* Borde muy claro */
+            --owid-shadow-subtle: rgba(0, 0, 0, 0.04); /* Sombra muy sutil */
+            --owid-shadow-medium: rgba(0, 0, 0, 0.08); /* Sombra al pasar el ratón */
+            --subtle-background: #f2f0ec; /* Color de fondo sutil del body */
+        }
+
+        /* Base Styles: Reseteo básico y fuentes */
+        body {
+            margin: 0;
+            font-family: 'Inter', Arial, sans-serif; /* Fuente principal: Inter */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--subtle-background); /* Nuevo color de fondo */
+            color: var(--owid-text-dark);
+            line-height: 1.6;
+        }
+
+        /* Contenedor principal del dashboard */
+        .dashboard-container {
+            min-height: 100vh;
+            padding: 2.5rem;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Cabecera del Dashboard */
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2.5rem; /* Reducido el margen inferior */
+            max-width: 960px;
+            padding: 2rem 1.5rem;
+            background-color: var(--owid-card-bg); /* Usa el nuevo color sutil para la cabecera también */
+            border-radius: 8px; /* Bordes sutilmente redondeados */
+            box-shadow: 0 2px 8px var(--owid-shadow-subtle); /* Sombra más discreta */
+            border: 1px solid var(--owid-border-light); /* Borde sutil */
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.8rem;
+            font-weight: 800; /* Más bold para imitar Graphik */
+            color: var(--owid-text-dark); /* Texto oscuro para el título */
+            margin-bottom: 0.8rem;
+            line-height: 1.2;
+            font-family: 'Times New Roman', Times, serif; /* Tipografía para el título principal */
+        }
+
+        .dashboard-header p {
+            font-size: 1.2rem;
+            color: var(--owid-text-medium);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Estilos para la Introducción (ahora es una "zeppelin-card" con ancho completo) */
+        .introduction-section {
+            background-color: var(--owid-card-bg); /* Usará el mismo color que las otras tarjetas */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--owid-shadow-subtle);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            text-align: left;
+            border: 1px solid var(--owid-border-light);
+        }
+
+        .introduction-section h2 {
+            font-size: 1.8rem;
+            font-weight: 700; /* Bold */
+            color: var(--owid-text-dark);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--owid-border-light); /* Separador sutil */
+            padding-bottom: 0.8rem;
+            text-align: center; /* Centrar el título "Introducción" */
+            font-family: 'Times New Roman', Times, serif; /* Tipografía para el título de la sección */
+        }
+
+        .introduction-section p {
+            font-size: 1.05rem;
+            color: var(--owid-text-medium); /* Texto gris para la introducción */
+            margin-bottom: 1rem;
+        }
+
+        .introduction-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .introduction-section a {
+            color: var(--owid-accent-blue);
+            text-decoration: none;
+            font-weight: 500; /* Semibold para enlaces */
+        }
+
+        .introduction-section a:hover {
+            text-decoration: underline;
+            color: var(--owid-accent-blue); /* Mismo color, solo subraya */
+        }
+
+        /* Área de contenido principal de las gráficas */
+        .dashboard-main {
+            max-width: 1400px;
+            width: 100%;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        /* Grid para las tarjetas de Zeppelin */
+        .zeppelin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 2.5rem;
+        }
+
+        /* Estilos para cada tarjeta de Zeppelin */
+        .zeppelin-card {
+            background-color: var(--owid-card-bg); /* Usa el nuevo color sutil */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--owid-shadow-subtle);
+            padding: 2rem;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            height: auto;
+            border: 1px solid var(--owid-border-light); /* Borde sutil */
+        }
+
+        .zeppelin-card:hover {
+            transform: translateY(-0.3rem);
+            box-shadow: 0 4px 12px var(--owid-shadow-medium); /* Sombra un poco más pronunciada al hover */
+        }
+
+        .zeppelin-card h2 {
+            font-size: 1.55rem;
+            font-weight: 700; /* Bold */
+            color: var(--owid-text-dark); /* Títulos de tarjeta en texto oscuro */
+            margin-bottom: 1.2rem;
+            line-height: 1.3;
+            font-family: 'Times New Roman', Times, serif; /* Tipografía para los títulos de las tarjetas */
+        }
+
+        /* Contenedor del Iframe con aspect ratio */
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            background-color: #f0f0f0; /* Fondo neutral para el iframe */
+            border-radius: 4px; /* Bordes ligeramente redondeados */
+            overflow: hidden;
+            flex-grow: 1;
+            border: 1px solid var(--owid-border-light); /* Borde para el iframe */
+        }
+
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .zeppelin-card p.explanation-text {
+            font-size: 1rem;
+            color: var(--owid-text-medium);
+            margin-top: 1.5rem;
+            text-align: left;
+            margin-bottom: 0;
+        }
+
+        /* Pie de página del dashboard */
+        .dashboard-footer {
+            text-align: center;
+            margin-top: 5rem;
+            color: var(--owid-text-medium);
+            font-size: 0.9rem;
+            padding-bottom: 1.5rem;
+            border-top: 1px solid var(--owid-border-light); /* Línea separadora sutil */
+            padding-top: 1.5rem;
+        }
+
+        /* Media Queries para Responsividad */
+        @media (max-width: 1450px) {
+            .dashboard-main {
+                max-width: 1200px;
+            }
+            .zeppelin-grid {
+                grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            }
+            /* Asegura que la sección de introducción se estire en el grid */
+            .introduction-section {
+                grid-column: 1 / -1; /* Ocupa todas las columnas disponibles */
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .dashboard-container {
+                padding: 1.5rem;
+            }
+            .dashboard-header {
+                padding: 1.5rem 1rem;
+            }
+            .dashboard-header h1 {
+                font-size: 2.2rem;
+            }
+            .dashboard-header p {
+                font-size: 1rem;
+            }
+            .introduction-section {
+                padding: 1.5rem;
+                margin-bottom: 2.5rem;
+            }
+            .dashboard-main {
+                padding: 0 0.5rem;
+            }
+            .zeppelin-grid {
+                grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+                gap: 2rem;
+            }
+            .zeppelin-card {
+                padding: 1.5rem;
+            }
+            .zeppelin-card h2 {
+                font-size: 1.3rem;
+            }
+            .zeppelin-card p.explanation-text {
+                font-size: 0.9rem;
+            }
+            .iframe-container {
+                padding-top: 65% !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+            .dashboard-header h1 {
+                font-size: 1.8rem;
+            }
+            .dashboard-header p {
+                font-size: 0.9rem;
+            }
+            .introduction-section h2 {
+                font-size: 1.3rem;
+            }
+            .introduction-section p {
+                font-size: 0.9rem;
+            }
+            .zeppelin-card h2 {
+                font-size: 1.1rem;
+            }
+            .zeppelin-card p.explanation-text {
+                font-size: 0.8rem;
+            }
+            .dashboard-footer {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Dashboard de Datos de Nacimientos</h1>
+            <p>Análisis detallado de información de nacimientos en Ecuador (2023)</p>
+        </header>
+
+        <main class="dashboard-main">
+            <div class="zeppelin-grid">
+                <section class="introduction-section" style="grid-column: 1 / -1;">
+                    <h2>Introducción al Proyecto</h2>
+                    <p>Este proyecto representa un esfuerzo colaborativo de los estudiantes Álvaro Pacheco, Manuel Gómez y Camilo Velepucha. El objetivo principal fue aprender y aplicar el uso de Apache Zeppelin como una herramienta integral para el procesamiento, la limpieza y el análisis de grandes conjuntos de datos.</p>
+                    <p>Para ello, se utilizó un archivo CSV proporcionado por la organización <strong>Ecuador en Cifras</strong>, específicamente de su sección de "Nacidos Vivos y Defunciones Fetales". Este dataset, disponible públicamente en su página web oficial (<a href="https://www.ecuadorencifras.gob.ec/nacidos-vivos-y-defunciones-fetales" target="_blank">ecuadorencifras.gob.ec</a>), ha sido el pilar de nuestra investigación.</p>
+                    <p>El resultado final es este dashboard diseñado para visualizar y presentar los análisis de las columnas más relevantes e interesantes del dataset, ofreciendo una perspectiva distinta sobre los patrones y tendencias de los nacimientos en Ecuador durante el año 2023.</p>
+                </section>
+
+                <div class="zeppelin-card">
+                    <h2>1. ¿Hay una diferencia en el peso (peso) y talla (talla) de los recién nacidos entre los que nacen en su provincia de nacimiento (prov_nac) o en una provincia de residencia habitual (prov_res) diferente?</h2>
+                    <div class="iframe-container" style="padding-top: 140%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753657048402_1334980903"
+                            title="Diferencia Peso/Talla Recién Nacidos por Provincia de Nacimiento/Residencia"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Queremos ver si el hecho de que una madre dé a luz fuera de su provincia de residencia habitual (quizás por un mejor hospital) influye en el tamaño y peso de su bebé al nacer.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>2. ¿Hay una asociación entre la étnica de la madre (etnia) y la talla (talla) o el peso (peso) del recién nacido?</h2>
+                    <div class="iframe-container" style="padding-top: 120%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753656091720_1127812810"
+                            title="Asociación Etnia Madre y Talla/Peso Recién Nacido"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Esta pregunta busca si existen diferencias en el tamaño y peso de los bebés al nacer según el grupo étnico de la madre. Esto podría sugerir variaciones biológicas o socioeconómicas que influyen en el desarrollo del bebé.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>3. ¿Cómo varía el tipo de parto (tipo_part) en relación con la provincia de nacimiento (prov_nac) y la edad de la madre (edad_mad)?</h2>
+                    <div class="iframe-container" style="padding-top: 78.57%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753655546131_1121706131"
+                            title="Variación Tipo de Parto por Provincia y Edad Madre"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Queremos ver si en ciertas provincias hay un tipo de parto más frecuente (por ejemplo, más cesáreas o partos naturales), y si la edad de la madre juega un papel en esta tendencia. Esto puede señalar diferencias en las prácticas médicas o preferencias por región.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>4. ¿En qué medida el producto del embarazo (p_emb) se asocia con el número de embarazos (num_emb) y el número de hijos nacieron muertos (hij_nacm)?</h2>
+                    <div class="iframe-container" style="padding-top: 100%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753657824979_1971570983"
+                            title="Asociación Producto Embarazo y Número Embarazos/Hijos Muertos"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Esta pregunta compleja busca entender si el resultado del embarazo (si fue único, gemelar, etc.) está relacionado con el historial reproductivo de la madre, incluyendo el número total de embarazos y si ha tenido nacimientos sin vida. Esto puede dar información sobre la salud reproductiva de la madre.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>5. ¿Existe una relación entre el nivel de instrucción alcanzado de la madre (niv_inst) y el peso del recién nacido (peso)?</h2>
+                    <div class="iframe-container" style="padding-top: 50%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753653668778_862104251"
+                            title="Relación Nivel Instrucción Madre y Peso Recién Nacido"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Esta pregunta busca entender si el nivel educativo de la madre puede estar asociado con el peso que tiene el bebé al nacer. Nos ayuda a identificar si hay diferencias en la salud inicial de los bebés dependiendo del nivel de estudios de sus madres.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>6. ¿Cuál es la distribución de los controles prenatales recibidos (con_pren) en función del área de residencia habitual de la madre (area_res) y el número de embarazos (num_emb)?</h2>
+                    <div class="iframe-container" style="padding-top: 50%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753655721707_1452281946"
+                            title="Distribución Controles Prenatales"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Esta pregunta explora si las madres en zonas urbanas o rurales tienen un número diferente de controles prenatales, y cómo esto se relaciona con la cantidad de embarazos que han tenido. Puede indicar si hay barreras de acceso a la atención prenatal en ciertas áreas o para madres con más experiencia en embarazos.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>7. ¿Cómo se relaciona el estado civil / conyugal de la madre (est_civil) con el número de hijos que nacieron vivos (hl_vivm) y el lugar de ocurrencia (lugar_ocur) del nacimiento?</h2>
+                    <div class="iframe-container" style="padding-top: 50%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753656227433_1949340032"
+                            title="Relación Estado Civil Madre y Hijos Vivos/Lugar Nacimiento"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Queremos entender si el estado civil de la madre (soltera, casada, etc.) se asocia con la cantidad de hijos vivos que tiene y dónde se produce el nacimiento (por ejemplo, si las madres solteras tienen más nacimientos en hospitales públicos).</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>8. ¿Existe una correlación entre el mes de nacimiento (mes_nac) y las semanas de gestación (sem_gest), diferenciando por sexo del recién nacido?</h2>
+                    <div class="iframe-container" style="padding-top: 50%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753656550657_495360143"
+                            title="Correlación Mes Nacimiento y Semanas Gestación por Sexo"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Esta pregunta explora si hay alguna estacionalidad en la duración del embarazo, y si esta tendencia es diferente para niños y niñas. Podría indicar factores ambientales o de salud estacionales que afectan el desarrollo del feto.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>9. ¿Cómo evoluciona el puntaje promedio de APGAR (al minuto y a los cinco minutos) en relación con las semanas de gestación del recién nacido?</h2>
+                    <div class="iframe-container" style="padding-top: 58.33%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753656704542_1979486568"
+                            title="Evolución APGAR y Semanas de Gestación"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Buscamos entender si la madurez del bebé al nacer, medida por sus semanas de gestación, influye en sus primeras evaluaciones de salud APGAR. Este análisis revela si hay una mejora en la condición del bebé entre el minuto 1 y el minuto 5 a medida que aumentan las semanas de gestación, y si ciertas semanas de gestación están asociadas con una mejor o peor adaptación inicial del recién nacido.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>10. ¿Cuál es la relación entre el número de hijos que han muerto (hl_nacm) y el nivel de instrucción alcanzado de la madre (niv_inst), desglosado por provincia de residencia habitual (prov_res)?</h2>
+                    <div class="iframe-container" style="padding-top: 57.14%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753656857856_619124907"
+                            title="Relación Hijos Muertos y Nivel Instrucción Madre por Provincia"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Esta pregunta intenta ver si el nivel educativo de la madre está asociado con la triste experiencia de haber perdido hijos previamente, y si esta relación varía en diferentes provincias, lo que podría indicar disparidades en el acceso a la atención médica.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>11. ¿Cómo se relaciona la nacionalidad de la madre (nac_mad) con la edad de la madre (edad_mad) y el número de embarazos (num_emb)?</h2>
+                    <div class="iframe-container" style="padding-top: 60%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753657165832_616044689"
+                            title="Relación Nacionalidad Madre, Edad y Número Embarazos"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Esta pregunta ayuda a identificar si hay patrones en la edad y el historial de embarazos de madres de diferentes nacionalidades, lo cual es útil para entender la demografía y necesidades de salud de las poblaciones migrantes.</p>
+                </div>
+
+                <div class="zeppelin-card">
+                    <h2>12. ¿Existe una asociación entre si la madre sabe leer y escribir (sabe_leer) y el tipo de parto (tipo_part) o las semanas de gestación (sem_gest) del recién nacido?</h2>
+                    <div class="iframe-container" style="padding-top: 50%;">
+                        <iframe
+                            src="https://8080-alvarod1-progavan-gbegtt99wpl.ws-us120.gitpod.io/#/notebook/2M3VP7FR4/paragraph/paragraph_1753657245067_362027424"
+                            title="Asociación Sabe Leer Madre y Tipo Parto/Semanas Gestación"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="explanation-text">Buscamos si la alfabetización de la madre se relaciona con la forma en que nace su bebé o con la duración de su embarazo. Esto podría indicar el impacto de la educación en el acceso a la información y decisiones de salud.</p>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="dashboard-footer">
+            <p>&copy; 2025 Dashboard de Datos de los Nacidos en 2023. Todos los derechos reservados.</p>
+        </footer>
+    </div>
+</body>
+</html>
